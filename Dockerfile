@@ -3,7 +3,7 @@ ARG BAK_STORAGE_PATH=/var/www/app/docker-backup-storage/
 ARG BAK_PUBLIC_PATH=/var/www/app/docker-backup-public/
 
 # Get Invoice Ninja and install nodejs packages
-FROM --platform=$BUILDPLATFORM docker.io/library/node:lts-alpine as build
+FROM --platform=$BUILDPLATFORM node:lts-alpine as build
 
 # Download Invoice Ninja
 ARG INVOICENINJA_VERSION
@@ -21,14 +21,14 @@ WORKDIR /var/www/app/
 # Install node packages
 ARG BAK_STORAGE_PATH
 ARG BAK_PUBLIC_PATH
-#RUN --mount=target=/var/www/app/node_modules,type=cache \
-RUN   npm install --production \
+RUN --mount=target=/var/www/app/node_modules,type=cache \
+    npm install --production \
     && npm run production \
     && mv /var/www/app/storage $BAK_STORAGE_PATH \
     && mv /var/www/app/public $BAK_PUBLIC_PATH  
 
 # Prepare php image
-FROM docker.io/library/php:${PHP_VERSION}-fpm-alpine3.13 as prod
+FROM php:${PHP_VERSION}-fpm-alpine3.13 as prod
 
 LABEL maintainer="David Bomba <turbo124@gmail.com>"
 
@@ -36,7 +36,7 @@ RUN mv /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini
 
 # Install PHP extensions
 # https://hub.docker.com/r/mlocati/php-extension-installer/tags
-COPY --from=docker.io/mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
+COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
 
 RUN install-php-extensions \
     bcmath \
@@ -64,15 +64,17 @@ COPY rootfs /
 
 ## Create user
 ARG UID=1500
+ARG GID=1500
 ENV INVOICENINJA_USER invoiceninja
+ENV INVOICENINJA_GROUP invoiceninja
 
-RUN if [[ "$UID" -ne "0" ]]; then addgroup --gid=$UID -S "$INVOICENINJA_USER" \
+RUN addgroup --gid=$GID -S "$INVOICENINJA_USER" \
     && adduser --uid=$UID \
     --disabled-password \
     --gecos "" \
     --home "/var/www/app" \
-    --ingroup "$INVOICENINJA_USER" \
-    "$INVOICENINJA_USER"; fi
+    --ingroup "$INVOICENINJA_GROUP" \
+    "$INVOICENINJA_USER"
 
 # Set up app
 ARG INVOICENINJA_VERSION
@@ -81,8 +83,7 @@ ARG BAK_PUBLIC_PATH
 ENV INVOICENINJA_VERSION $INVOICENINJA_VERSION
 ENV BAK_STORAGE_PATH $BAK_STORAGE_PATH
 ENV BAK_PUBLIC_PATH $BAK_PUBLIC_PATH
-#COPY --from=build --chown=$INVOICENINJA_USER:$INVOICENINJA_USER /var/www/app /var/www/app
-COPY --from=build --chown=0:0 /var/www/app /var/www/app
+COPY --from=build --chown=$INVOICENINJA_USER:$INVOICENINJA_GROUP /var/www/app /var/www/app
 
 USER $UID
 WORKDIR /var/www/app
