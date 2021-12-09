@@ -57,7 +57,8 @@ RUN set -eux; \
     mysql-client \
     git \
     chromium \
-    ttf-freefont
+    ttf-freefont \
+    shadow # needed for usermod
 
 # Install gosu
 ENV GOSU_VERSION 1.14
