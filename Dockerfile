@@ -104,7 +104,10 @@ RUN addgroup --gid=$GID -S "$INVOICENINJA_USER" \
     --gecos "" \
     --home "/var/www/app" \
     --ingroup "$INVOICENINJA_GROUP" \
-    "$INVOICENINJA_USER"
+    "$INVOICENINJA_USER" \
+    && usermod -a -G tty "$INVOICENINJA_USER"
+
+# why the tty group? https://github.com/moby/moby/issues/31243#issuecomment-406825071
 
 # Set up app
 ARG INVOICENINJA_VERSION
