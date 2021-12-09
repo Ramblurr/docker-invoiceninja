@@ -36,7 +36,7 @@ jobs:
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: ./
-          build-args: INVOICENINJA_VERSION=5-stable UID=1337 GID=1337
+          build-args: INVOICENINJA_VERSION=5-stable
           target: prod
           platforms: linux/amd64,linux/arm64
           tags: ramblurr/invoiceninja:5

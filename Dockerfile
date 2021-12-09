@@ -59,6 +59,35 @@ RUN set -eux; \
     chromium \
     ttf-freefont
 
+# Install gosu
+ENV GOSU_VERSION 1.14
+RUN set -eux; \
+	\
+	apk add --no-cache --virtual .gosu-deps \
+		ca-certificates \
+		dpkg \
+		gnupg \
+	; \
+	\
+	dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')"; \
+	wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch"; \
+	wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc"; \
+	\
+# verify the signature
+	export GNUPGHOME="$(mktemp -d)"; \
+	gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
+	gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu; \
+	command -v gpgconf && gpgconf --kill all || :; \
+	rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc; \
+	\
+# clean up fetch dependencies
+	apk del --no-network .gosu-deps; \
+	\
+	chmod +x /usr/local/bin/gosu; \
+# verify that the binary works
+	gosu --version; \
+	gosu nobody true
+
 # Copy files
 COPY rootfs /
 
@@ -83,9 +112,8 @@ ARG BAK_PUBLIC_PATH
 ENV INVOICENINJA_VERSION $INVOICENINJA_VERSION
 ENV BAK_STORAGE_PATH $BAK_STORAGE_PATH
 ENV BAK_PUBLIC_PATH $BAK_PUBLIC_PATH
-COPY --from=build --chown=$INVOICENINJA_USER:$INVOICENINJA_GROUP /var/www/app /var/www/app
+COPY --from=build /var/www/app /var/www/app
 
-USER $UID
 WORKDIR /var/www/app
 
 # Do not remove this ENV

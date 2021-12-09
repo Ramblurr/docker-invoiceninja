@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+set -e
+
+: "${UID:0}"
+: "${GID:0}"
+
+
+if [ "$UID" != 0 ]; then
+  usermod -u "$UID" "$INVOICENINJA_USER" 2>/dev/null && {
+    groupmod -g "$GID" "$INVOICENINJA_GROUP" 2>/dev/null ||
+    usermod -a -G "$GID" "$INVOICENINJA_GROUP"
+  }
+
+  chown -R $INVOICENINJA_USER:$INVOICENINJA_GROUP /var/www/app
+  exec gosu $INVOICENINJA_USER docker-entrypoint "$@"
+fi
+
+exec docker-entrypoint "$@"
