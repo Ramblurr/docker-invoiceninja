@@ -1,5 +1,8 @@
 # docker-invoiceninja
 
+[![Build Status](https://github.com/Ramblurr/docker-invoiceninja/actions/workflows/build-image-v5.yaml/badge.svg)](https://github.com/Ramblurr/docker-invoiceninja/actions/workflows/build-image-v5.yaml)
+[![Docker image, latest](https://img.shields.io/docker/image-size/ramblurr/invoiceninja/5?label=docker.io%2Framblurr%2Finvoiceninja%3A5)](https://hub.docker.com/r/ramblurr/invoiceninja)
+
 Based on the official [invoiceninja/dockerfiles](https://github.com/invoiceninja/dockerfiles).
 
 Withs some custom changes:
