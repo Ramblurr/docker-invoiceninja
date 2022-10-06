@@ -93,13 +93,13 @@ RUN set -eux; \
 COPY rootfs /
 
 ## Create user
-ARG UID=1500
-ARG GID=1500
+ARG PUID=1500
+ARG PGID=1500
 ENV INVOICENINJA_USER invoiceninja
 ENV INVOICENINJA_GROUP invoiceninja
 
-RUN addgroup --gid=$GID -S "$INVOICENINJA_USER" \
-    && adduser --uid=$UID \
+RUN addgroup --gid=$PGID -S "$INVOICENINJA_USER" \
+    && adduser --uid=$PUID \
     --disabled-password \
     --gecos "" \
     --home "/var/www/app" \
