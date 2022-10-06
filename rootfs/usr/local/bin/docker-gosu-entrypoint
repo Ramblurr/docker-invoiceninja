@@ -7,14 +7,16 @@ PGID="${PGID:-0}"
 
 if [ "$PUID" != 0 ]; then
   echo "Changing uid of $INVOICENINJA_USER to $PUID"
-  echo "Changing gid of $INVOICENINJA_GROUP to $PGID"
-  usermod -u "$PUID" "$INVOICENINJA_USER" 2>/dev/null && {
-    groupmod -g "$PGID" "$INVOICENINJA_GROUP" 2>/dev/null ||
-    usermod -a -G "$PGID" "$INVOICENINJA_GROUP"
-  }
+  groupmod -o -g "$PGID" "$INVOICENINJA_USER"
+  echo "Changing gid of $INVOICENINJA_USER to $PGID"
+  usermod -o -u "$PUID" "$INVOICENINJA_USER"
 
-  chown -R "$INVOICENINJA_USER:$INVOICENINJA_GROUP" /var/www/app
+  echo "Changing ownership of files in /var/www/app to $INVOICENINJA_USER"
+  chown -R "$INVOICENINJA_USER:$INVOICENINJA_USER" /var/www/app
+  chmod o+w /dev/stdout
+  chmod o+w /dev/stderr
   exec gosu "$INVOICENINJA_USER" docker-entrypoint "$@"
 fi
 
 exec docker-entrypoint "$@"
+
